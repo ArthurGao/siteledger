@@ -3,7 +3,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Camera, InfoDisc } from '@/components/ui/icons';
-import { FIELD_COPY, FIELD_INITIAL, FIELD_STEPS } from '@/lib/mock/captures';
+import {
+  FIELD_CARDS,
+  FIELD_COPY,
+  FIELD_INITIAL,
+  FIELD_STEPS,
+} from '@/lib/mock/captures';
 import styles from './PhoneCapture.module.css';
 
 const SYNC_MS = 1100;
@@ -15,11 +20,15 @@ export function PhoneCapture() {
   const [syncing, setSyncing] = useState(false);
 
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => {
-    if (timer.current) clearTimeout(timer.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
 
-  const stepHours = (d: number) => setHours((h) => Math.max(0, Math.round((h + d) * 2) / 2));
+  const stepHours = (d: number) =>
+    setHours((h) => Math.max(0, Math.round((h + d) * 2) / 2));
   const stepLoads = (d: number) => setLoads((l) => Math.max(0, l + d));
 
   function save() {
@@ -31,7 +40,11 @@ export function PhoneCapture() {
     }, SYNC_MS);
   }
 
-  const buttonLabel = online ? FIELD_COPY.synced : syncing ? FIELD_COPY.syncing : FIELD_COPY.save;
+  const buttonLabel = online
+    ? FIELD_COPY.synced
+    : syncing
+      ? FIELD_COPY.syncing
+      : FIELD_COPY.save;
 
   return (
     <div className={styles.fieldwrap}>
@@ -48,81 +61,78 @@ export function PhoneCapture() {
           </div>
 
           <div className={styles.pscroll}>
-            <div className={styles.jcard}>
-              <div className={styles.jcardTitle}>Albany — Site cut</div>
-              <div className={styles.jcardMeta}>Job #260919 · EX-01 (CAT 320)</div>
+            {FIELD_CARDS.map((card) => {
+              const isHours = card.field === 'hours';
+              const value = isHours ? hours.toFixed(1) : String(loads);
+              const step = isHours ? stepHours : stepLoads;
+              const delta = isHours ? 0.5 : 1;
+              const atMin = isHours ? hours === 0 : loads === 0;
+              const unit = isHours ? 'hours by 0.5' : 'loads by 1';
 
-              <div className={styles.fld}>
-                <label id="hours-label">Hours worked</label>
-                <div className={styles.stepper}>
-                  <button
-                    type="button"
-                    onClick={() => stepHours(-0.5)}
-                    disabled={hours === 0}
-                    aria-label="Decrease hours by 0.5"
-                  >
-                    –
-                  </button>
-                  <div className={styles.val} aria-labelledby="hours-label" role="status">
-                    {hours.toFixed(1)}
+              return (
+                <div key={card.id} className={styles.jcard}>
+                  <div className={styles.jcardTitle}>{card.title}</div>
+                  <div className={styles.jcardMeta}>{card.meta}</div>
+
+                  <div className={styles.fld}>
+                    <label id={`${card.id}-label`}>{card.fieldLabel}</label>
+                    <div className={styles.stepper}>
+                      <button
+                        type="button"
+                        onClick={() => step(-delta)}
+                        disabled={atMin}
+                        aria-label={`Decrease ${unit}`}
+                      >
+                        –
+                      </button>
+                      <div
+                        className={styles.val}
+                        aria-labelledby={`${card.id}-label`}
+                        role="status"
+                      >
+                        {value}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => step(delta)}
+                        aria-label={`Increase ${unit}`}
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
-                  <button type="button" onClick={() => stepHours(0.5)} aria-label="Increase hours by 0.5">
-                    +
-                  </button>
+
+                  {card.note ? (
+                    <div className={styles.fld}>
+                      <label>Note</label>
+                      <div className={styles.inp}>{card.note}</div>
+                    </div>
+                  ) : null}
+
+                  {card.photos ? (
+                    <div className={styles.fld}>
+                      <label>Photos</label>
+                      <div className={styles.photos}>
+                        {Array.from({ length: card.photos }, (_, i) => (
+                          <div key={i} className={styles.photo}>
+                            <Camera withHump={i === 0} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
-              </div>
-
-              <div className={styles.fld}>
-                <label>Note</label>
-                <div className={styles.inp}>Hit hard rock at north boundary</div>
-              </div>
-
-              <div className={styles.fld}>
-                <label>Photos</label>
-                <div className={styles.photos}>
-                  <div className={styles.photo}>
-                    <Camera withHump />
-                  </div>
-                  <div className={styles.photo}>
-                    <Camera />
-                  </div>
-                  <div className={styles.photo}>
-                    <Camera />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.jcard}>
-              <div className={styles.jcardTitle}>Cart spoil</div>
-              <div className={styles.jcardMeta}>TR-02 · per load</div>
-              <div className={styles.fld}>
-                <label id="loads-label">Loads carted</label>
-                <div className={styles.stepper}>
-                  <button
-                    type="button"
-                    onClick={() => stepLoads(-1)}
-                    disabled={loads === 0}
-                    aria-label="Decrease loads by 1"
-                  >
-                    –
-                  </button>
-                  <div className={styles.val} aria-labelledby="loads-label" role="status">
-                    {loads}
-                  </div>
-                  <button type="button" onClick={() => stepLoads(1)} aria-label="Increase loads by 1">
-                    +
-                  </button>
-                </div>
-              </div>
-            </div>
+              );
+            })}
 
             <div
               className={`${styles.notice} ${online ? styles.noticeOn : styles.noticeOff}`}
               aria-live="polite"
             >
               <InfoDisc />
-              <span>{online ? FIELD_COPY.onlineNotice : FIELD_COPY.offlineNotice}</span>
+              <span>
+                {online ? FIELD_COPY.onlineNotice : FIELD_COPY.offlineNotice}
+              </span>
             </div>
           </div>
 

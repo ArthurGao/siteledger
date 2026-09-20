@@ -18,11 +18,24 @@ export const FIELD_ENTRIES: readonly CaptureEntry[] = [
   { id: 'ce-2', taskId: 't3', loads: FIELD_INITIAL.loads, source: 'manual' },
 ];
 
-export const FIELD_CARDS = [
+export interface FieldCard {
+  id: string;
+  title: string;
+  meta: string;
+  /** which stepper the card carries */
+  field: 'hours' | 'loads';
+  fieldLabel: string;
+  note?: string;
+  photos?: number;
+}
+
+export const FIELD_CARDS: readonly FieldCard[] = [
   {
     id: 'ce-1',
     title: 'Albany — Site cut',
     meta: 'Job #260919 · EX-01 (CAT 320)',
+    field: 'hours',
+    fieldLabel: 'Hours worked',
     note: 'Hit hard rock at north boundary',
     photos: 3,
   },
@@ -30,18 +43,25 @@ export const FIELD_CARDS = [
     id: 'ce-2',
     title: 'Cart spoil',
     meta: 'TR-02 · per load',
+    field: 'loads',
+    fieldLabel: 'Loads carted',
   },
-] as const;
+];
 
 export const FIELD_COPY = {
-  offlineNotice: 'No signal. Your entries are saved on the phone and will sync automatically.',
-  onlineNotice: 'Back online. 2 entries synced — now waiting on office review.',
+  offlineNotice:
+    'No signal. Your entries are saved on the phone and will sync automatically.',
+  onlineNotice: `Back online. ${FIELD_ENTRIES.length} entries synced — now waiting on office review.`,
   save: 'Save entry',
   syncing: 'Syncing…',
   synced: 'Synced ✓',
 } as const;
 
-export const FIELD_STEPS: readonly { n: string; title: string; body: string }[] = [
+export const FIELD_STEPS: readonly {
+  n: string;
+  title: string;
+  body: string;
+}[] = [
   {
     n: '1',
     title: 'See only your work',
