@@ -11,7 +11,9 @@
 }
 
 .content {
-  padding: 26px;
+  padding: 26px max(26px, env(safe-area-inset-right, 0px))
+    max(26px, env(safe-area-inset-bottom, 0px))
+    max(26px, env(safe-area-inset-left, 0px));
   max-width: 1180px;
   width: 100%;
 }
