@@ -101,3 +101,24 @@
     display: inline-grid;
   }
 }
+
+/* 加入说明按钮后窄屏会多出几个像素，收紧内边距与间距，
+   保留全部元素而不是隐藏集成状态灯 */
+@media (max-width: 560px) {
+  .topbar {
+    padding: 14px max(14px, env(safe-area-inset-right, 0px)) 14px
+      max(14px, env(safe-area-inset-left, 0px));
+    gap: 10px;
+  }
+
+  .integrations {
+    gap: 6px;
+  }
+
+  .crumb {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

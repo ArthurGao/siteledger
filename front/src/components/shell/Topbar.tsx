@@ -1,6 +1,7 @@
 'use client';
 
 import { crumbFor } from '@/lib/nav';
+import { HelpButton } from '@/components/help/HelpButton';
 import { MenuGlyph } from './NavIcon';
 import styles from './Topbar.module.css';
 
@@ -31,6 +32,7 @@ export function Topbar({
       </div>
 
       <div className={styles.integrations}>
+        <HelpButton pathname={pathname} />
         <span className={styles.pill}>
           <span className={styles.dot} />
           Xero
