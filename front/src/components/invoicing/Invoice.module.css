@@ -1,0 +1,141 @@
+.inv {
+  max-width: 720px;
+}
+
+.invhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px;
+  border-bottom: 1px solid var(--seam);
+  gap: 16px;
+}
+
+.co {
+  font-family: var(--font-barlow-condensed), var(--font-barlow), sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.gst {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.no {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: right;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.invtable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.invtable th {
+  text-align: left;
+  font-family: var(--font-barlow-condensed), var(--font-barlow), sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--muted);
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--seam);
+}
+
+.invtable td {
+  padding: 11px 20px;
+  border-bottom: 1px solid var(--seam-soft);
+  font-size: 13.5px;
+}
+
+.r {
+  text-align: right;
+}
+
+.mono {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.amt {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.trace {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.invfoot {
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.line {
+  display: flex;
+  gap: 40px;
+  font-size: 14px;
+  min-width: 240px;
+  justify-content: space-between;
+}
+
+.total {
+  font-family: var(--font-barlow-condensed), var(--font-barlow), sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  border-top: 2px solid var(--steel);
+  padding-top: 8px;
+  margin-top: 2px;
+}
+
+/* Xero action bar */
+.xerobar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: var(--surface);
+  border-top: 1px solid var(--seam);
+  border-radius: 0 0 12px 12px;
+  flex-wrap: wrap;
+}
+
+.xstate {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+
+.syncedMark {
+  color: var(--billed);
+  font-weight: 600;
+}
+
+.alreadyChip {
+  background: var(--billed-soft);
+  color: var(--billed);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 11px;
+}

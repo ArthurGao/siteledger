@@ -1,0 +1,182 @@
+.jobgrid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 16px;
+  align-items: start;
+}
+
+/* grid items default to min-content width, which would push the page wider
+   than the viewport on a phone — let them shrink and scroll the table instead */
+.jobgrid > * {
+  min-width: 0;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.mapPanel {
+  margin-bottom: 16px;
+}
+
+/* CSS-drawn site map: survey grid + dashed cut zone + pins */
+.site {
+  height: 150px;
+  border-radius: 10px 10px 0 0;
+  background:
+    linear-gradient(0deg, rgba(25, 28, 27, 0.06), rgba(25, 28, 27, 0.06)),
+    repeating-linear-gradient(0deg, transparent 0 22px, rgba(76, 90, 97, 0.14) 22px 23px),
+    repeating-linear-gradient(90deg, transparent 0 22px, rgba(76, 90, 97, 0.14) 22px 23px),
+    #eaede9;
+  position: relative;
+  overflow: hidden;
+}
+
+.pin {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid var(--flag);
+  background: #fff;
+  transform: translate(-50%, -50%);
+}
+
+.zone {
+  position: absolute;
+  border: 2px dashed var(--slate);
+  background: rgba(76, 90, 97, 0.08);
+  border-radius: 4px;
+  left: 14%;
+  top: 22%;
+  width: 44%;
+  height: 46%;
+}
+
+.lbl {
+  position: absolute;
+  bottom: 8px;
+  left: 10px;
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 11px;
+  background: var(--steel);
+  color: #fff;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.hazwrap {
+  padding: 12px 16px;
+}
+
+.hz {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.hz span {
+  font-size: 11.5px;
+  background: var(--flag-soft);
+  color: var(--flag);
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-weight: 500;
+}
+
+/* task table */
+.data {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data th {
+  text-align: left;
+  font-family: var(--font-barlow-condensed), var(--font-barlow), sans-serif;
+  font-weight: 600;
+  font-size: 12.5px;
+  color: var(--muted);
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--seam);
+}
+
+.data td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--seam-soft);
+  font-size: 13.5px;
+  vertical-align: middle;
+}
+
+.data tr:last-child td {
+  border-bottom: 0;
+}
+
+.num {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* sidebar */
+.sidePanel {
+  padding: 14px 16px;
+}
+
+.sideGap {
+  margin-bottom: 16px;
+}
+
+.sideTitle {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.kv {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--seam-soft);
+  font-size: 13px;
+}
+
+.kv:last-child {
+  border-bottom: 0;
+}
+
+.kv span:first-child {
+  color: var(--muted);
+}
+
+.kvMono {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.docketNote {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+
+.docket {
+  border: 1px solid var(--seam);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 12.5px;
+}
+
+.docket b {
+  font-family: var(--font-barlow-condensed), var(--font-barlow), sans-serif;
+}
+
+.docketLines {
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+@media (max-width: 900px) {
+  .jobgrid {
+    grid-template-columns: 1fr;
+  }
+}

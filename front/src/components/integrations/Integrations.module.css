@@ -1,0 +1,147 @@
+.intgrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.logo {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-barlow-condensed), var(--font-barlow), sans-serif;
+  font-weight: 700;
+  color: #fff;
+  font-size: 15px;
+  flex: none;
+}
+
+.intbody {
+  padding: 14px 16px;
+}
+
+.intbody p {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.dirn {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.d {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12.5px;
+}
+
+.ar {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-weight: 600;
+  color: var(--machine-deep);
+}
+
+.arIn {
+  color: var(--slate);
+}
+
+.footnote {
+  font-size: 12px;
+  color: var(--muted);
+  border-top: 1px solid var(--seam-soft);
+  padding-top: 10px;
+}
+
+/* weighbridge OCR */
+.ocr {
+  border: 1px dashed var(--seam);
+  border-radius: 9px;
+  padding: 12px;
+  background: var(--surface);
+}
+
+.ticket {
+  background: #fff;
+  border: 1px solid var(--seam);
+  border-radius: 6px;
+  padding: 10px;
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  position: relative;
+  overflow: hidden;
+  color: #22261f;
+}
+
+.scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--machine);
+  box-shadow: 0 0 10px 2px rgba(245, 179, 1, 0.6);
+  top: 0;
+  opacity: 0;
+}
+
+.scanning .scan {
+  animation: scanmove 1.3s ease-in-out;
+}
+
+@keyframes scanmove {
+  0% {
+    opacity: 1;
+    top: 0;
+  }
+  100% {
+    opacity: 1;
+    top: 100%;
+  }
+}
+
+.ocrBtn {
+  margin-top: 10px;
+}
+
+.ocrout {
+  margin-top: 10px;
+  font-size: 12.5px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--seam-soft);
+}
+
+.row b {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.outcome {
+  margin-top: 8px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.outcomeText {
+  font-size: 12px;
+  color: var(--billed);
+}
+
+@media (max-width: 900px) {
+  .intgrid {
+    grid-template-columns: 1fr;
+  }
+}
