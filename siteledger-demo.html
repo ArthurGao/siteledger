@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SiteLedger — Field to Invoice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --concrete:#E7E9E5; --surface:#FAFAF8; --panel:#FFFFFF;
+  --steel:#191C1B; --ink:#22261F; --muted:#6B726A;
+  --machine:#F5B301; --machine-deep:#E0A200;
+  --slate:#4C5A61; --slate-soft:#DCE1E1;
+  --seam:#D6D8D2; --seam-soft:#E7E8E3;
+  --billed:#1E7A50; --billed-soft:#DDEEE4;
+  --flag:#C6402E; --flag-soft:#F6E1DC;
+  --hazard:repeating-linear-gradient(45deg,var(--steel) 0 9px,var(--machine) 9px 18px);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%}
+body{
+  margin:0; background:var(--concrete); color:var(--ink);
+  font-family:"Barlow",system-ui,sans-serif; font-size:15px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4,.cond{font-family:"Barlow Semi Condensed","Barlow",sans-serif}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+button{font-family:inherit;cursor:pointer}
+a{color:inherit}
+
+/* ---------- shell ---------- */
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100%}
+.rail{
+  background:var(--steel);color:#EDEEEA;display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;
+}
+.brand{padding:20px 18px 16px;display:flex;align-items:center;gap:11px;border-bottom:1px solid #2c302c}
+.brand .glyph{width:34px;height:34px;border-radius:7px;background:var(--machine);display:grid;place-items:center;flex:none}
+.brand .glyph svg{width:20px;height:20px;display:block}
+.brand b{font-family:"Barlow Semi Condensed";font-weight:700;font-size:19px;letter-spacing:.3px;line-height:1}
+.brand span{display:block;font-size:11px;color:#9aa09a;letter-spacing:.4px;margin-top:2px}
+.nav{padding:10px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;flex:1}
+.nav button{
+  display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:none;border:0;
+  color:#c3c7c1;padding:9px 11px;border-radius:8px;font-size:14.5px;font-weight:500;position:relative;
+}
+.nav button svg{width:18px;height:18px;flex:none;opacity:.85}
+.nav button:hover{background:#242824;color:#fff}
+.nav button.on{background:#2a2e29;color:#fff}
+.nav button.on::before{content:"";position:absolute;left:-10px;top:8px;bottom:8px;width:4px;border-radius:0 3px 3px 0;background:var(--machine)}
+.railfoot{padding:12px 14px 18px;border-top:1px solid #2c302c;font-size:12px;color:#8b918a}
+
+.main{display:flex;flex-direction:column;min-width:0}
+.topbar{
+  background:var(--surface);border-bottom:1px solid var(--seam);
+  padding:14px 26px;display:flex;align-items:center;gap:18px;position:sticky;top:0;z-index:5;
+}
+.topbar .crumb{font-family:"Barlow Semi Condensed";font-weight:600;font-size:15px;color:var(--muted)}
+.topbar .crumb b{color:var(--ink)}
+.integrations{margin-left:auto;display:flex;gap:8px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;
+  background:var(--panel);border:1px solid var(--seam);padding:5px 10px;border-radius:20px;color:var(--ink)}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--billed)}
+.pill .dot.pulse{animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.who{display:flex;align-items:center;gap:9px;font-size:13.5px}
+.who .av{width:30px;height:30px;border-radius:50%;background:var(--slate);color:#fff;display:grid;place-items:center;font-weight:600;font-size:13px}
+
+.content{padding:26px;max-width:1180px;width:100%}
+.view{display:none;animation:fade .25s ease}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ---------- primitives ---------- */
+.eyebrow{font-family:"Barlow Semi Condensed";font-weight:600;font-size:13px;color:var(--muted);margin:0 0 3px}
+.h-title{font-family:"Barlow Semi Condensed";font-weight:700;font-size:27px;line-height:1.1;margin:0 0 4px;letter-spacing:.2px}
+.lede{color:var(--muted);margin:0 0 22px;max-width:64ch}
+.panel{background:var(--panel);border:1px solid var(--seam);border-radius:12px}
+.grid{display:grid;gap:16px}
+.tag{display:inline-flex;align-items:center;gap:5px;font-family:"IBM Plex Mono";font-size:11.5px;font-weight:500;
+  padding:2px 7px;border-radius:5px;letter-spacing:.3px}
+.tag.plant{background:var(--steel);color:var(--machine)}
+.tag.ok{background:var(--billed-soft);color:var(--billed)}
+.tag.warn{background:var(--flag-soft);color:var(--flag)}
+.tag.hold{background:#EEE7CF;color:#8a6d00}
+.tag.info{background:var(--slate-soft);color:var(--slate)}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--steel);background:var(--steel);color:#fff;
+  font-weight:600;font-size:14px;padding:9px 15px;border-radius:8px;font-family:"Barlow Semi Condensed";letter-spacing:.2px}
+.btn:hover{background:#000}
+.btn.amber{background:var(--machine);border-color:var(--machine-deep);color:var(--steel)}
+.btn.amber:hover{background:var(--machine-deep)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--seam)}
+.btn.ghost:hover{border-color:var(--muted)}
+.btn:disabled{opacity:.5;cursor:default}
+.src{font-family:"IBM Plex Mono";font-size:10.5px;padding:1px 5px;border-radius:4px;font-weight:500}
+.src.manual{background:#EDEEE9;color:#6a716a}
+.src.tele{background:var(--slate-soft);color:var(--slate)}
+.src.weigh{background:var(--billed-soft);color:var(--billed)}
+.src.ai{background:#EFE6F3;color:#7a4d97}
+
+/* dashboard */
+.statrow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.stat{padding:15px 16px;position:relative;overflow:hidden}
+.stat .k{font-size:12.5px;color:var(--muted);font-weight:500}
+.stat .v{font-family:"IBM Plex Mono";font-weight:600;font-size:27px;line-height:1.1;margin-top:6px;color:var(--ink)}
+.stat .v small{font-size:14px;color:var(--muted);font-weight:500}
+.stat .sub{font-size:12px;margin-top:5px;color:var(--muted)}
+.stat .edge{position:absolute;left:0;top:0;bottom:0;width:4px}
+.two{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;align-items:start}
+.cardhead{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--seam-soft)}
+.cardhead h3{margin:0;font-size:16px;font-weight:600}
+.cardhead .r{margin-left:auto;font-size:12.5px;color:var(--muted)}
+.flow{display:flex;align-items:stretch;padding:18px 16px;gap:0}
+.flow .node{flex:1;text-align:center;padding:4px 6px}
+.flow .node .lab{font-size:11.5px;color:var(--muted);font-weight:500}
+.flow .node .num{font-family:"IBM Plex Mono";font-weight:600;font-size:22px;margin-top:3px}
+.flow .arr{display:grid;place-items:center;color:var(--machine-deep);flex:none;width:26px}
+.flow .arr svg{width:18px;height:18px}
+.conv{padding:0 16px 16px}
+.bar{height:10px;border-radius:6px;background:var(--seam-soft);overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.bar i.b1{background:var(--billed)}
+.bar i.b2{background:var(--machine)}
+.bar i.b3{background:var(--flag)}
+.legend{display:flex;gap:16px;margin-top:9px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
+
+.feed{padding:6px 0}
+.feed .item{display:flex;gap:11px;padding:11px 16px;border-bottom:1px solid var(--seam-soft)}
+.feed .item:last-child{border-bottom:0}
+.feed .ic{width:28px;height:28px;border-radius:7px;flex:none;display:grid;place-items:center}
+.feed .ic svg{width:15px;height:15px}
+.feed .ic.ai{background:#EFE6F3;color:#7a4d97}
+.feed .ic.flag{background:var(--flag-soft);color:var(--flag)}
+.feed .ic.ok{background:var(--billed-soft);color:var(--billed)}
+.feed .tx{font-size:13.5px;line-height:1.4}
+.feed .tx b{font-weight:600}
+.feed .tx small{display:block;color:var(--muted);font-size:12px;margin-top:1px}
+
+/* planner */
+.planner{overflow-x:auto}
+.board{min-width:720px}
+.board .head{display:grid;grid-template-columns:150px repeat(6,1fr);border-bottom:2px solid var(--steel)}
+.board .head div{padding:9px 10px;font-family:"Barlow Semi Condensed";font-weight:600;font-size:13px;color:var(--muted)}
+.board .head div:first-child{color:var(--ink)}
+.board .row{display:grid;grid-template-columns:150px repeat(6,1fr);border-bottom:1px solid var(--seam-soft);min-height:52px}
+.board .res{padding:9px 10px;display:flex;flex-direction:column;justify-content:center;background:var(--surface);border-right:1px solid var(--seam-soft)}
+.board .res b{font-family:"IBM Plex Mono";font-weight:600;font-size:13px}
+.board .res small{color:var(--muted);font-size:11.5px}
+.board .cell{padding:5px;border-right:1px solid var(--seam-soft);position:relative}
+.chip{border-radius:6px;padding:6px 8px;font-size:11.5px;font-weight:500;line-height:1.25;height:100%;
+  display:flex;flex-direction:column;justify-content:center;border-left:3px solid}
+.chip.albany{background:#FCF3D6;border-color:var(--machine-deep)}
+.chip.harbour{background:#E4ECEC;border-color:var(--slate)}
+.chip.yard{background:#EDEEE9;border-color:#a8ada6;color:var(--muted)}
+.chip b{font-weight:600;display:block}
+.chip .st{font-family:"IBM Plex Mono";font-size:9.5px;letter-spacing:.3px;margin-top:2px}
+
+/* job */
+.jobgrid{display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start}
+.site{height:150px;border-radius:10px 10px 0 0;background:
+  linear-gradient(0deg,rgba(25,28,27,.06),rgba(25,28,27,.06)),
+  repeating-linear-gradient(0deg,transparent 0 22px,rgba(76,90,97,.14) 22px 23px),
+  repeating-linear-gradient(90deg,transparent 0 22px,rgba(76,90,97,.14) 22px 23px),#EAEDE9;
+  position:relative;overflow:hidden}
+.site .pin{position:absolute;width:16px;height:16px;border-radius:50%;border:3px solid var(--flag);background:#fff;transform:translate(-50%,-50%)}
+.site .zone{position:absolute;border:2px dashed var(--slate);background:rgba(76,90,97,.08);border-radius:4px}
+.site .lbl{position:absolute;bottom:8px;left:10px;font-family:"IBM Plex Mono";font-size:11px;background:var(--steel);color:#fff;padding:2px 7px;border-radius:4px}
+table.data{width:100%;border-collapse:collapse}
+table.data th{text-align:left;font-family:"Barlow Semi Condensed";font-weight:600;font-size:12.5px;color:var(--muted);
+  padding:8px 12px;border-bottom:1px solid var(--seam)}
+table.data td{padding:9px 12px;border-bottom:1px solid var(--seam-soft);font-size:13.5px;vertical-align:middle}
+table.data tr:last-child td{border-bottom:0}
+table.data .num{font-family:"IBM Plex Mono";text-align:right}
+.side .kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--seam-soft);font-size:13px}
+.side .kv:last-child{border-bottom:0}
+.side .kv span:first-child{color:var(--muted)}
+.hz{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.hz .h{font-size:11.5px;background:var(--flag-soft);color:var(--flag);padding:3px 8px;border-radius:5px;font-weight:500}
+
+/* field phone */
+.fieldwrap{display:grid;grid-template-columns:300px 1fr;gap:26px;align-items:start}
+.phone{width:300px;border:10px solid var(--steel);border-radius:34px;background:var(--steel);
+  box-shadow:0 18px 40px -18px rgba(0,0,0,.4);overflow:hidden}
+.phone .scr{background:var(--concrete);border-radius:24px;overflow:hidden;height:600px;display:flex;flex-direction:column}
+.phone .pbar{background:var(--steel);color:#fff;padding:8px 16px 10px;display:flex;align-items:center;gap:8px}
+.phone .pbar .nm{font-family:"Barlow Semi Condensed";font-weight:600;font-size:14px}
+.phone .off{margin-left:auto;font-family:"IBM Plex Mono";font-size:10px;padding:2px 6px;border-radius:4px;font-weight:500}
+.phone .off.no{background:var(--flag);color:#fff}
+.phone .off.yes{background:var(--billed);color:#fff}
+.pscroll{flex:1;overflow-y:auto;padding:14px}
+.jcard{background:var(--panel);border:1px solid var(--seam);border-radius:10px;padding:12px;margin-bottom:12px}
+.jcard .t{font-family:"Barlow Semi Condensed";font-weight:600;font-size:15px}
+.jcard .m{font-size:12px;color:var(--muted);margin-top:1px}
+.fld{margin-top:10px}
+.fld label{font-size:11.5px;color:var(--muted);font-weight:500;display:block;margin-bottom:3px}
+.fld .inp{background:var(--surface);border:1px solid var(--seam);border-radius:7px;padding:8px 10px;
+  font-family:"IBM Plex Mono";font-size:14px;display:flex;align-items:center;justify-content:space-between}
+.stepper{display:flex;align-items:center;gap:0;border:1px solid var(--seam);border-radius:7px;overflow:hidden;background:var(--surface)}
+.stepper button{border:0;background:var(--surface);width:34px;height:34px;font-size:18px;color:var(--ink)}
+.stepper button:hover{background:var(--seam-soft)}
+.stepper .val{flex:1;text-align:center;font-family:"IBM Plex Mono";font-weight:600;font-size:16px}
+.photos{display:flex;gap:6px;margin-top:6px}
+.photos .p{width:46px;height:46px;border-radius:7px;background:
+  repeating-linear-gradient(45deg,#dfe3de 0 6px,#eef0ec 6px 12px);border:1px solid var(--seam);
+  display:grid;place-items:center;color:var(--muted)}
+.photos .p svg{width:16px;height:16px}
+.psync{padding:12px 14px;border-top:1px solid var(--seam);background:var(--surface)}
+.notice{font-size:12px;padding:8px 10px;border-radius:7px;margin-top:10px;display:flex;gap:8px;align-items:flex-start}
+.notice.off{background:var(--flag-soft);color:#8a2f21}
+.notice.on{background:var(--billed-soft);color:var(--billed)}
+.field-copy .step{display:flex;gap:12px;margin-bottom:16px}
+.field-copy .n{width:28px;height:28px;border-radius:7px;background:var(--steel);color:var(--machine);
+  font-family:"IBM Plex Mono";font-weight:600;display:grid;place-items:center;flex:none;font-size:13px}
+.field-copy .step b{font-family:"Barlow Semi Condensed";font-weight:600;font-size:15px}
+.field-copy .step p{margin:2px 0 0;font-size:13.5px;color:var(--muted)}
+
+/* review */
+.rev-two{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.util{padding:14px 16px}
+.util .u{margin-bottom:14px}
+.util .u:last-child{margin-bottom:0}
+.util .u .top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
+.util .u .top b{font-family:"IBM Plex Mono";font-weight:600}
+.ubar{height:22px;border-radius:6px;background:var(--seam-soft);overflow:hidden;display:flex;position:relative}
+.ubar i{height:100%}
+.ubar .bill{background:var(--billed)}
+.ubar .idle{background:repeating-linear-gradient(45deg,#e2e4de 0 6px,#eceee9 6px 12px)}
+.xcheck{padding:2px 0}
+.xrow{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--seam-soft)}
+.xrow:last-child{border-bottom:0}
+.xrow .id{font-family:"IBM Plex Mono";font-weight:600;font-size:13px;width:56px}
+.xrow .cmp{flex:1;display:flex;gap:18px;font-size:13px}
+.xrow .cmp div span{color:var(--muted);font-size:11.5px;display:block}
+.xrow .cmp div b{font-family:"IBM Plex Mono";font-weight:600;font-size:14px}
+
+/* invoice */
+.inv{max-width:720px}
+.invhead{display:flex;justify-content:space-between;align-items:flex-start;padding:20px;border-bottom:1px solid var(--seam)}
+.invhead .co{font-family:"Barlow Semi Condensed";font-weight:700;font-size:20px}
+.invhead .no{font-family:"IBM Plex Mono";font-size:13px;color:var(--muted);text-align:right}
+.invtable{width:100%;border-collapse:collapse}
+.invtable th{text-align:left;font-family:"Barlow Semi Condensed";font-weight:600;font-size:12px;color:var(--muted);padding:10px 20px;border-bottom:1px solid var(--seam)}
+.invtable th.r,.invtable td.r{text-align:right}
+.invtable td{padding:11px 20px;border-bottom:1px solid var(--seam-soft);font-size:13.5px}
+.invtable td .trace{font-size:11px;color:var(--muted);margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.invtable .amt{font-family:"IBM Plex Mono";font-weight:500}
+.invfoot{padding:14px 20px;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.invfoot .line{display:flex;gap:40px;font-size:14px;min-width:240px;justify-content:space-between}
+.invfoot .line.total{font-family:"Barlow Semi Condensed";font-weight:700;font-size:18px;border-top:2px solid var(--steel);padding-top:8px;margin-top:2px}
+.invfoot .amt{font-family:"IBM Plex Mono"}
+.xerobar{display:flex;align-items:center;gap:14px;padding:16px 20px;background:var(--surface);border-top:1px solid var(--seam);border-radius:0 0 12px 12px}
+.xstate{font-size:13px;display:flex;align-items:center;gap:8px}
+
+/* integrations */
+.intgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+.intcard .cardhead .logo{width:30px;height:30px;border-radius:7px;display:grid;place-items:center;font-family:"Barlow Semi Condensed";font-weight:700;color:#fff;font-size:15px}
+.intbody{padding:14px 16px}
+.intbody p{margin:0 0 12px;font-size:13px;color:var(--muted)}
+.dirn{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
+.dirn .d{display:flex;align-items:center;gap:9px;font-size:12.5px}
+.dirn .d .ar{font-family:"IBM Plex Mono";font-weight:600;color:var(--machine-deep)}
+.dirn .d.in .ar{color:var(--slate)}
+
+.ocr{border:1px dashed var(--seam);border-radius:9px;padding:12px;background:var(--surface)}
+.ticket{background:#fff;border:1px solid var(--seam);border-radius:6px;padding:10px;font-family:"IBM Plex Mono";font-size:11px;line-height:1.6;position:relative;overflow:hidden}
+.ticket .scan{position:absolute;left:0;right:0;height:3px;background:var(--machine);box-shadow:0 0 10px 2px rgba(245,179,1,.6);top:0;opacity:0}
+.ticket.scanning .scan{animation:scanmove 1.3s ease-in-out}
+@keyframes scanmove{0%{opacity:1;top:0}100%{opacity:1;top:100%}}
+.ocrout{margin-top:10px;font-size:12.5px}
+.ocrout .row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--seam-soft)}
+.ocrout .row b{font-family:"IBM Plex Mono"}
+
+/* AI */
+.ai-hero{background:var(--steel);color:#EDEEEA;border-radius:12px;padding:22px 22px;margin-bottom:18px;position:relative;overflow:hidden}
+.ai-hero .haz{position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--hazard)}
+.ai-hero h2{font-family:"Barlow Semi Condensed";font-weight:700;font-size:22px;margin:0 0 6px}
+.ai-hero p{margin:0;color:#b3b8b1;max-width:70ch;font-size:14px}
+.ai-hero .rule{margin-top:14px;display:inline-flex;gap:8px;align-items:center;background:#242824;border:1px solid #32372f;padding:8px 12px;border-radius:8px;font-size:12.5px}
+.ai-hero .rule b{color:var(--machine)}
+.aigrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.aicard .cardhead .ic{width:28px;height:28px;border-radius:7px;background:#EFE6F3;color:#7a4d97;display:grid;place-items:center}
+.aicard .cardhead .ic svg{width:16px;height:16px}
+.aibody{padding:14px 16px}
+.aibody .desc{font-size:13px;color:var(--muted);margin:0 0 12px}
+.demo{background:var(--surface);border:1px solid var(--seam);border-radius:9px;padding:12px}
+.demo textarea{width:100%;border:1px solid var(--seam);border-radius:7px;padding:9px;font-family:inherit;font-size:13px;resize:none;background:#fff}
+.tasks-out{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.tasks-out .t{background:#fff;border:1px solid var(--seam);border-radius:7px;padding:8px 10px;font-size:12.5px;display:flex;justify-content:space-between;align-items:center;opacity:0;transform:translateX(-6px);animation:slidein .3s forwards}
+@keyframes slidein{to{opacity:1;transform:none}}
+.tasks-out .t b{font-weight:600}
+.tasks-out .t .basis{font-family:"IBM Plex Mono";font-size:11px;color:var(--slate);background:var(--slate-soft);padding:2px 6px;border-radius:4px}
+.photostage{display:flex;gap:12px;align-items:center}
+.photostage .pic{width:96px;height:70px;border-radius:8px;flex:none;background:
+  linear-gradient(160deg,#8a7a5c,#6b5d44);position:relative;overflow:hidden;border:1px solid var(--seam)}
+.photostage .pic::after{content:"";position:absolute;left:8px;right:8px;bottom:8px;height:28px;border-radius:4px;
+  background:linear-gradient(#5a4d38,#4a3f2e);box-shadow:inset 0 3px 6px rgba(0,0,0,.3)}
+.estout{font-size:13px}
+.estout .big{font-family:"IBM Plex Mono";font-weight:600;font-size:22px}
+
+/* footer note */
+.demo-note{margin-top:26px;font-size:12px;color:var(--muted);border-top:1px dashed var(--seam);padding-top:14px;display:flex;gap:10px;align-items:flex-start}
+.demo-note svg{width:15px;height:15px;flex:none;margin-top:2px;color:var(--machine-deep)}
+
+/* responsive */
+@media(max-width:900px){
+  .app{grid-template-columns:1fr}
+  .rail{position:fixed;left:0;top:0;bottom:0;width:230px;transform:translateX(-100%);transition:transform .25s;z-index:40}
+  .rail.open{transform:none}
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:35;display:none}
+  .scrim.on{display:block}
+  .menu-btn{display:inline-grid}
+  .statrow{grid-template-columns:repeat(2,1fr)}
+  .two,.jobgrid,.fieldwrap,.rev-two,.intgrid,.aigrid{grid-template-columns:1fr}
+}
+@media(min-width:901px){.menu-btn{display:none}.scrim{display:none}}
+.menu-btn{width:38px;height:38px;border-radius:8px;border:1px solid var(--seam);background:var(--panel);place-items:center}
+.menu-btn svg{width:18px;height:18px}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+:root[data-theme="dark"]{
+  --concrete:#121412;--surface:#1a1d1a;--panel:#1e211e;--ink:#e7e9e3;--muted:#9aa094;
+  --steel:#0c0e0c;--seam:#2c302b;--seam-soft:#242722;
+  --slate-soft:#2a332f;--billed-soft:#17301f;--flag-soft:#331d18;
+}
+:root[data-theme="dark"] body{background:var(--concrete)}
+</style>
+</head>
+<body>
+<div class="scrim" id="scrim" onclick="toggleRail()"></div>
+<div class="app">
+  <!-- RAIL -->
+  <aside class="rail" id="rail">
+    <div class="brand">
+      <div class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="#191C1B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h5l2-4h4l3 4h4"/><circle cx="7" cy="19" r="2"/><circle cx="18" cy="19" r="2"/><path d="M13 13V7h4l3 6"/></svg></div>
+      <div><b>SiteLedger</b><span>Field to Invoice</span></div>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="on" data-v="dash" data-c="Dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</button>
+      <button data-v="planner" data-c="Work Planner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Work Planner</button>
+      <button data-v="job" data-c="Jobs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Jobs &amp; Sites</button>
+      <button data-v="field" data-c="Field Capture">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Field Capture</button>
+      <button data-v="review" data-c="Review">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>Review</button>
+      <button data-v="invoice" data-c="Invoicing">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M14 2v5h5M9 13h6M9 17h6"/></svg>Invoicing</button>
+      <button data-v="integrations" data-c="Integrations">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h4m8 0h4"/><rect x="8" y="8" width="8" height="8" rx="2"/><path d="M12 4v4m0 8v4"/></svg>Integrations</button>
+      <button data-v="ai" data-c="AI Assist">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/><path d="M5 19l.8 2 .8-2 2-.8-2-.8-.8-2-.8 2-2 .8z"/></svg>AI Assist</button>
+    </nav>
+    <div class="railfoot">Demo workspace · mock data<br>Sample Earthworks Ltd</div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-btn" onclick="toggleRail()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <div class="crumb">SiteLedger / <b id="crumb">Dashboard</b></div>
+      <div class="integrations">
+        <span class="pill"><span class="dot pulse"></span>Xero</span>
+        <span class="pill"><span class="dot pulse"></span>EROAD</span>
+        <span class="who"><span class="av">A</span></span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ============ DASHBOARD ============ -->
+      <section class="view on" id="v-dash">
+        <p class="eyebrow">Monday, 22 Sep · site day</p>
+        <h1 class="h-title">This morning, at a glance</h1>
+        <p class="lede">You don't chase machines by phone anymore. Every hour, load and docket recorded on site is already becoming a line on an invoice.</p>
+
+        <div class="statrow">
+          <div class="stat panel"><span class="edge" style="background:var(--machine)"></span><div class="k">Active jobs today</div><div class="v">4</div><div class="sub">2 sites · 2 in progress</div></div>
+          <div class="stat panel"><span class="edge" style="background:var(--slate)"></span><div class="k">Plant &amp; crew deployed</div><div class="v">9</div><div class="sub">2 excavators · 3 trucks · 4 crew</div></div>
+          <div class="stat panel"><span class="edge" style="background:var(--billed)"></span><div class="k">Billable ratio</div><div class="v">84<small>%</small></div><div class="sub">of clocked hours today</div></div>
+          <div class="stat panel"><span class="edge" style="background:var(--flag)"></span><div class="k">Ready to invoice</div><div class="v">$18.4<small>k</small></div><div class="sub">from captured work</div></div>
+        </div>
+
+        <div class="two">
+          <div class="panel">
+            <div class="cardhead"><h3>Field to invoice, today</h3><span class="r">updates as crews record</span></div>
+            <div class="flow">
+              <div class="node"><div class="lab">Captured entries</div><div class="num">37</div></div>
+              <div class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+              <div class="node"><div class="lab">Priced lines</div><div class="num">31</div></div>
+              <div class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+              <div class="node"><div class="lab">Draft invoices</div><div class="num">2</div></div>
+              <div class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+              <div class="node"><div class="lab">Pushed to Xero</div><div class="num" style="color:var(--billed)">1</div></div>
+            </div>
+            <div class="conv">
+              <div class="bar"><i class="b1" style="width:64%"></i><i class="b2" style="width:20%"></i><i class="b3" style="width:16%"></i></div>
+              <div class="legend">
+                <span><i style="background:var(--billed)"></i>Billable on job</span>
+                <span><i style="background:var(--machine)"></i>Travel &amp; setup</span>
+                <span><i style="background:var(--flag)"></i>Idle / waiting</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="cardhead"><h3>Needs a look</h3></div>
+            <div class="feed">
+              <div class="item"><div class="ic flag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></div>
+                <div class="tx"><b>EX-01 hours don't match EROAD.</b><small>Operator logged 9.0h · engine ran 7.5h. Review before billing.</small></div></div>
+              <div class="item"><div class="ic ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9z"/></svg></div>
+                <div class="tx"><b>Possible missed charge on Albany.</b><small>Truck disposal on a docket has no matching invoice line yet.</small></div></div>
+              <div class="item"><div class="ic ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9z"/></svg></div>
+                <div class="tx"><b>TR-03 idle 1.4h waiting to load.</b><small>Utilisation gap flagged — consider re-sequencing tomorrow.</small></div></div>
+              <div class="item"><div class="ic ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></div>
+                <div class="tx"><b>Harbour Rd invoice synced to Xero.</b><small>INV-2049 · $6,240.00 · no duplicate created.</small></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PLANNER ============ -->
+      <section class="view" id="v-planner">
+        <p class="eyebrow">Week of 22 Sep</p>
+        <h1 class="h-title">Work Planner</h1>
+        <p class="lede">Assign plant and crew to jobs by dragging them onto the day. The board is the single answer to "where is everything today" — no more ringing round.</p>
+
+        <div class="panel planner">
+          <div class="board">
+            <div class="head"><div>Resource</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div>
+
+            <div class="row"><div class="res"><b>EX-01</b><small>CAT 320 · 20T</small></div>
+              <div class="cell"><div class="chip albany"><b>Albany — Site cut</b><span class="st">IN PROGRESS</span></div></div>
+              <div class="cell"><div class="chip albany"><b>Albany — Site cut</b><span class="st">PLANNED</span></div></div>
+              <div class="cell"><div class="chip albany"><b>Albany — Spreading</b><span class="st">PLANNED</span></div></div>
+              <div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+
+            <div class="row"><div class="res"><b>EX-02</b><small>Kubota · 13T</small></div>
+              <div class="cell"><div class="chip harbour"><b>Harbour Rd — Trench</b><span class="st">IN PROGRESS</span></div></div>
+              <div class="cell"><div class="chip harbour"><b>Harbour Rd — Trench</b><span class="st">PLANNED</span></div></div>
+              <div class="cell"></div>
+              <div class="cell"><div class="chip yard"><b>Yard — Service</b><span class="st">MAINT</span></div></div>
+              <div class="cell"></div><div class="cell"></div></div>
+
+            <div class="row"><div class="res"><b>TR-01</b><small>8-wheeler</small></div>
+              <div class="cell"><div class="chip albany"><b>Albany — Cart spoil</b><span class="st">IN PROGRESS</span></div></div>
+              <div class="cell"><div class="chip albany"><b>Albany — Import GAP40</b><span class="st">PLANNED</span></div></div>
+              <div class="cell"><div class="chip albany"><b>Albany — Import GAP40</b><span class="st">PLANNED</span></div></div>
+              <div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+
+            <div class="row"><div class="res"><b>TR-02</b><small>8-wheeler</small></div>
+              <div class="cell"><div class="chip albany"><b>Albany — Cart spoil</b><span class="st">IN PROGRESS</span></div></div>
+              <div class="cell"><div class="chip albany"><b>Albany — Cart spoil</b><span class="st">PLANNED</span></div></div>
+              <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+
+            <div class="row"><div class="res"><b>TR-03</b><small>Truck &amp; trailer</small></div>
+              <div class="cell"><div class="chip albany" style="opacity:.75"><b>Albany — Cart spoil</b><span class="st" style="color:var(--flag)">OVERDUE START</span></div></div>
+              <div class="cell"><div class="chip harbour"><b>Harbour Rd — Cart</b><span class="st">PLANNED</span></div></div>
+              <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+
+            <div class="row"><div class="res"><b>Jack M.</b><small>Operator</small></div>
+              <div class="cell"><div class="chip albany"><b>EX-01 · Albany</b><span class="st">ON SITE</span></div></div>
+              <div class="cell"><div class="chip albany"><b>EX-01 · Albany</b><span class="st">PLANNED</span></div></div>
+              <div class="cell"><div class="chip albany"><b>EX-01 · Albany</b><span class="st">PLANNED</span></div></div>
+              <div class="cell"></div><div class="cell"></div><div class="cell"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ JOB ============ -->
+      <section class="view" id="v-job">
+        <p class="eyebrow">Job #260919 · Kauri Build Ltd</p>
+        <h1 class="h-title">Albany Site Earthworks</h1>
+        <p class="lede">A job breaks into billable tasks. Each task carries how it's charged, so the invoice writes itself from what the crew records.</p>
+
+        <div class="jobgrid">
+          <div>
+            <div class="panel" style="margin-bottom:16px">
+              <div class="site">
+                <div class="zone" style="left:14%;top:22%;width:44%;height:46%"></div>
+                <div class="pin" style="left:30%;top:40%"></div>
+                <div class="pin" style="left:70%;top:60%"></div>
+                <div class="lbl">18 Bush Rd, Albany · cut zone + stockpile</div>
+              </div>
+              <div style="padding:12px 16px">
+                <div class="hz">
+                  <span class="h">Overhead power — NE boundary</span>
+                  <span class="h">Hard rock at north face</span>
+                  <span class="h">Live traffic on Bush Rd</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="cardhead"><h3>Tasks</h3><span class="r">6 tasks · charge basis set per task</span></div>
+              <table class="data">
+                <thead><tr><th>Task</th><th>Resource</th><th>Charge basis</th><th class="num">Rate</th><th class="num">Captured</th></tr></thead>
+                <tbody>
+                  <tr><td>Site cut</td><td>EX-01</td><td><span class="tag info">per hour</span></td><td class="num">$180</td><td class="num">9.0 h</td></tr>
+                  <tr><td>Load trucks</td><td>EX-01</td><td><span class="tag info">per hour</span></td><td class="num">incl.</td><td class="num">—</td></tr>
+                  <tr><td>Cart spoil</td><td>TR-01/02/03</td><td><span class="tag info">per load</span></td><td class="num">$95</td><td class="num">24 loads</td></tr>
+                  <tr><td>Import GAP40</td><td>TR-01</td><td><span class="tag info">per tonne</span></td><td class="num">$41</td><td class="num">120 t</td></tr>
+                  <tr><td>Spreading</td><td>EX-01</td><td><span class="tag info">per hour</span></td><td class="num">$180</td><td class="num">planned</td></tr>
+                  <tr><td>Concrete removal</td><td>EX-01</td><td><span class="tag hold">extra · docket</span></td><td class="num">$180</td><td class="num">1.5 h</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="side">
+            <div class="panel" style="padding:14px 16px;margin-bottom:16px">
+              <h3 style="margin:0 0 8px;font-size:15px;font-weight:600">Job details</h3>
+              <div class="kv"><span>Status</span><span><span class="tag ok">In progress</span></span></div>
+              <div class="kv"><span>Customer</span><span>Kauri Build Ltd</span></div>
+              <div class="kv"><span>Xero contact</span><span class="mono" style="font-size:12px">CT-0192</span></div>
+              <div class="kv"><span>Quote ref</span><span class="mono" style="font-size:12px">Q-4471</span></div>
+              <div class="kv"><span>Spoil volume</span><span>~600 m³</span></div>
+            </div>
+            <div class="panel" style="padding:14px 16px">
+              <h3 style="margin:0 0 6px;font-size:15px;font-weight:600">Dockets</h3>
+              <p style="font-size:12.5px;color:var(--muted);margin:0 0 10px">Extra work builder asked for on the day — recorded so it never gets forgotten at billing.</p>
+              <div style="border:1px solid var(--seam);border-radius:8px;padding:10px;font-size:12.5px">
+                <b style="font-family:'Barlow Semi Condensed'">Docket #0182</b>
+                <div style="color:var(--muted);margin-top:4px">Remove concrete — 1.5h · Truck disposal — 2 loads · Drain excavation — 1h · <span class="src ai">1 photo</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ FIELD ============ -->
+      <section class="view" id="v-field">
+        <p class="eyebrow">Operator app · Jack M.</p>
+        <h1 class="h-title">Field Capture</h1>
+        <p class="lede">The crew records hours, loads, dockets and photos on their phone — and it works with no signal. Nothing depends on a bar of coverage at the bottom of a cut.</p>
+
+        <div class="fieldwrap">
+          <div class="phone">
+            <div class="scr">
+              <div class="pbar"><span class="nm">SiteLedger</span><span class="off no" id="netbadge">OFFLINE</span></div>
+              <div class="pscroll">
+                <div class="jcard">
+                  <div class="t">Albany — Site cut</div>
+                  <div class="m">Job #260919 · EX-01 (CAT 320)</div>
+
+                  <div class="fld"><label>Hours worked</label>
+                    <div class="stepper"><button onclick="stepHrs(-0.5)">–</button><div class="val mono" id="hrsVal">9.0</div><button onclick="stepHrs(0.5)">+</button></div>
+                  </div>
+                  <div class="fld"><label>Note</label>
+                    <div class="inp" style="font-family:'Barlow';font-size:12.5px;color:var(--muted)">Hit hard rock at north boundary</div>
+                  </div>
+                  <div class="fld"><label>Photos</label>
+                    <div class="photos"><div class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/></svg></div><div class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/></svg></div><div class="p"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/></svg></div></div>
+                  </div>
+                </div>
+
+                <div class="jcard">
+                  <div class="t">Cart spoil</div>
+                  <div class="m">TR-02 · per load</div>
+                  <div class="fld"><label>Loads carted</label>
+                    <div class="stepper"><button onclick="stepLoads(-1)">–</button><div class="val mono" id="loadsVal">9</div><button onclick="stepLoads(1)">+</button></div>
+                  </div>
+                </div>
+
+                <div class="notice off" id="fieldNotice">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;flex:none"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 8v4M12 16h.01"/></svg>
+                  <span>No signal. Your entries are saved on the phone and will sync automatically.</span>
+                </div>
+              </div>
+              <div class="psync">
+                <button class="btn amber" style="width:100%;justify-content:center" onclick="goOnline()" id="syncBtn">Save entry</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-copy">
+            <div class="step"><div class="n">1</div><div><b>See only your work</b><p>The operator opens the app and sees the jobs assigned to them today — with the site map, hazards and what needs doing.</p></div></div>
+            <div class="step"><div class="n">2</div><div><b>Record on the spot</b><p>Hours, loads, tonnages, extras, notes and photos — tapped in as the work happens, not reconstructed from memory that night.</p></div></div>
+            <div class="step"><div class="n">3</div><div><b>Works with no coverage</b><p>Entries are held on the device and sync the moment signal returns. Try the button — flip the phone back online.</p></div></div>
+            <div class="step"><div class="n">4</div><div><b>Straight into billing</b><p>Once synced, every entry is already a priced line waiting on the office review — nothing re-keyed.</p></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ REVIEW ============ -->
+      <section class="view" id="v-review">
+        <p class="eyebrow">Job #260919 · Monday</p>
+        <h1 class="h-title">Review before billing</h1>
+        <p class="lede">See what was clocked versus what's actually billable, and let the machine data catch the entries that don't add up.</p>
+
+        <div class="rev-two">
+          <div class="panel">
+            <div class="cardhead"><h3>Clocked vs billable</h3><span class="r">by resource</span></div>
+            <div class="util">
+              <div class="u"><div class="top"><span>Jack M. — EX-01</span><b>8.5 / 10.0 h</b></div><div class="ubar"><i class="bill" style="width:85%"></i><i class="idle" style="width:15%"></i></div></div>
+              <div class="u"><div class="top"><span>TR-01</span><b>7.2 / 8.0 h</b></div><div class="ubar"><i class="bill" style="width:90%"></i><i class="idle" style="width:10%"></i></div></div>
+              <div class="u"><div class="top"><span>TR-03</span><b>5.6 / 7.0 h</b></div><div class="ubar"><i class="bill" style="width:80%"></i><i class="idle" style="width:20%"></i></div></div>
+              <p style="font-size:12.5px;color:var(--muted);margin:2px 0 0">Striped = travel, waiting or yard time. Billable ratio feeds the utilisation view.</p>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="cardhead"><h3>EROAD cross-check</h3><span class="r"><span class="src tele">telematics</span></span></div>
+            <div class="xcheck">
+              <div class="xrow">
+                <div class="id">EX-01</div>
+                <div class="cmp">
+                  <div><span>Operator</span><b>9.0 h</b></div>
+                  <div><span>Engine (EROAD)</span><b>7.5 h</b></div>
+                </div>
+                <span class="tag warn">1.5h gap</span>
+              </div>
+              <div class="xrow">
+                <div class="id">TR-01</div>
+                <div class="cmp">
+                  <div><span>Operator</span><b>8.0 h</b></div>
+                  <div><span>GPS on site</span><b>7.8 h</b></div>
+                </div>
+                <span class="tag ok">matches</span>
+              </div>
+              <div class="xrow">
+                <div class="id">TR-02</div>
+                <div class="cmp">
+                  <div><span>Loads logged</span><b>9</b></div>
+                  <div><span>Site trips</span><b>9</b></div>
+                </div>
+                <span class="tag ok">matches</span>
+              </div>
+            </div>
+            <div style="padding:12px 16px;border-top:1px solid var(--seam-soft);font-size:12.5px;color:var(--muted)">
+              The EX-01 gap is surfaced for a person to resolve — bill the engine hours, the logged hours, or split. The system never silently overrides field entries.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ INVOICE ============ -->
+      <section class="view" id="v-invoice">
+        <p class="eyebrow">Job #260919 · draft</p>
+        <h1 class="h-title">Invoicing</h1>
+        <p class="lede">Every line traces back to what the crew recorded and the rate on its task. Send it to Xero in one step — safely, with no duplicate if you press twice.</p>
+
+        <div class="panel inv">
+          <div class="invhead">
+            <div><div class="co">Sample Earthworks Ltd</div><div style="font-size:12.5px;color:var(--muted);margin-top:2px">GST 128-419-032</div></div>
+            <div class="no">DRAFT<br>Job #260919<br>Kauri Build Ltd</div>
+          </div>
+          <table class="invtable">
+            <thead><tr><th>Description</th><th class="r">Qty</th><th class="r">Rate</th><th class="r">Amount</th></tr></thead>
+            <tbody>
+              <tr><td>Excavator EX-01 — site cut &amp; loading<div class="trace"><span class="src manual">manual</span>from 3 capture entries</div></td><td class="r mono">9.0 h</td><td class="r mono">$180.00</td><td class="r amt">$1,620.00</td></tr>
+              <tr><td>Cart spoil — TR-01/02/03<div class="trace"><span class="src manual">manual</span>24 loads across 3 trucks</div></td><td class="r mono">24</td><td class="r mono">$95.00</td><td class="r amt">$2,280.00</td></tr>
+              <tr><td>Import GAP40<div class="trace"><span class="src weigh">weighbridge</span>OCR from 4 dockets</div></td><td class="r mono">120 t</td><td class="r mono">$41.00</td><td class="r amt">$4,920.00</td></tr>
+              <tr><td>Concrete removal — extra<div class="trace"><span class="src manual">docket</span>Docket #0182</div></td><td class="r mono">1.5 h</td><td class="r mono">$180.00</td><td class="r amt">$270.00</td></tr>
+            </tbody>
+          </table>
+          <div class="invfoot">
+            <div class="line"><span>Subtotal</span><span class="amt">$9,090.00</span></div>
+            <div class="line"><span>GST 15%</span><span class="amt">$1,363.50</span></div>
+            <div class="line total"><span>Total</span><span class="amt">$10,453.50</span></div>
+          </div>
+          <div class="xerobar">
+            <button class="btn amber" id="xeroBtn" onclick="pushXero()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px"><path d="M4 12h16M14 6l6 6-6 6"/></svg>Push to Xero</button>
+            <div class="xstate" id="xeroState" style="color:var(--muted)">Draft — not yet in Xero</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ INTEGRATIONS ============ -->
+      <section class="view" id="v-integrations">
+        <p class="eyebrow">Connected systems</p>
+        <h1 class="h-title">Integrations</h1>
+        <p class="lede">SiteLedger sits between the tools you already run. It doesn't replace your telematics or your accountant — it turns what they know into billed work.</p>
+
+        <div class="intgrid">
+          <!-- Xero -->
+          <div class="panel intcard">
+            <div class="cardhead"><div class="logo" style="background:#13B5EA">X</div><h3>Xero</h3><span class="r"><span class="tag ok">connected</span></span></div>
+            <div class="intbody">
+              <p>Your accounting stays the source of truth for money. SiteLedger reads your customers and rates in, and writes finished invoices back.</p>
+              <div class="dirn">
+                <div class="d in"><span class="ar">←</span> Customers &amp; contacts</div>
+                <div class="d in"><span class="ar">←</span> Items &amp; charge-out rates</div>
+                <div class="d"><span class="ar">→</span> Invoices with photo attachments</div>
+              </div>
+              <div style="font-size:12px;color:var(--muted);border-top:1px solid var(--seam-soft);padding-top:10px">
+                Push is idempotent — an invoice maps to one Xero record, so a retry never doubles up.
+              </div>
+            </div>
+          </div>
+
+          <!-- EROAD -->
+          <div class="panel intcard">
+            <div class="cardhead"><div class="logo" style="background:#0F1E3C">E</div><h3>EROAD</h3><span class="r"><span class="tag ok">connected</span></span></div>
+            <div class="intbody">
+              <p>Telematics answers the objective question: when did the engine actually run, and where was the truck. SiteLedger uses it to check field entries.</p>
+              <div class="dirn">
+                <div class="d in"><span class="ar">←</span> Engine hours per machine</div>
+                <div class="d in"><span class="ar">←</span> GPS &amp; on-site time</div>
+                <div class="d in"><span class="ar">←</span> Distance &amp; RUC</div>
+              </div>
+              <div style="font-size:12px;color:var(--muted);border-top:1px solid var(--seam-soft);padding-top:10px">
+                Feeds the cross-check in Review. Flags gaps, never overwrites what the operator logged.
+              </div>
+            </div>
+          </div>
+
+          <!-- Weighbridge OCR -->
+          <div class="panel intcard">
+            <div class="cardhead"><div class="logo" style="background:var(--steel)">◷</div><h3>Weighbridge OCR</h3><span class="r"><span class="src ai">AI</span></span></div>
+            <div class="intbody">
+              <p>Where tonnage must be exact, the weighbridge docket is the measured truth. Snap it — the reading is pulled in for you.</p>
+              <div class="ocr">
+                <div class="ticket" id="ticket">
+                  <div class="scan"></div>
+                  WESTGATE WEIGHBRIDGE<br>
+                  DOCKET 55213<br>
+                  TRUCK: TR-01<br>
+                  PRODUCT: GAP40<br>
+                  GROSS 41.20 t<br>
+                  TARE 11.20 t<br>
+                  NET 30.00 t
+                </div>
+                <button class="btn ghost" style="width:100%;justify-content:center;margin-top:10px" id="ocrBtn" onclick="runOCR()">Scan docket</button>
+                <div class="ocrout" id="ocrOut" style="display:none">
+                  <div class="row"><span>Truck</span><b>TR-01</b></div>
+                  <div class="row"><span>Product</span><b>GAP40</b></div>
+                  <div class="row"><span>Net</span><b>30.00 t</b></div>
+                  <div style="margin-top:8px"><span class="src weigh">weighbridge</span> <span style="font-size:12px;color:var(--billed)">→ billable, added to Import GAP40</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ AI ============ -->
+      <section class="view" id="v-ai">
+        <p class="eyebrow">AI Assist</p>
+        <h1 class="h-title">Where AI earns its place</h1>
+
+        <div class="ai-hero">
+          <div class="haz"></div>
+          <h2>One rule keeps it honest</h2>
+          <p>Every AI feature has to answer a single question: can its output stand as a charge on an invoice? If yes, it's a billing source. If not, it only ever suggests or pre-fills — a person confirms before anything reaches the customer.</p>
+          <div class="rule"><b>Measured</b> can bill · <b>Estimated</b> only assists</div>
+        </div>
+
+        <div class="aigrid">
+          <!-- NL job creation -->
+          <div class="panel aicard">
+            <div class="cardhead"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10M4 18h7"/></svg></div><h3>Build a job from a sentence</h3><span class="r"><span class="tag hold">draft only</span></span></div>
+            <div class="aibody">
+              <p class="desc">Describe the job the way the customer phoned it in. Get a task breakdown with charge bases ready to confirm.</p>
+              <div class="demo">
+                <textarea id="nlInput" rows="2">Albany — cut 600m³, cart spoil away, then bring GAP40 back</textarea>
+                <button class="btn amber" style="margin-top:8px" id="nlBtn" onclick="runNL()">Draft tasks</button>
+                <div class="tasks-out" id="nlOut"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- photo estimate -->
+          <div class="panel aicard">
+            <div class="cardhead"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/></svg></div><h3>Estimate a load from a photo</h3><span class="r"><span class="tag warn">assist only</span></span></div>
+            <div class="aibody">
+              <p class="desc">A rough volume from a truck or stockpile photo, using the truck's known capacity. Helps catch missed loads — not a billing figure unless the customer agrees.</p>
+              <div class="demo photostage">
+                <div class="pic"></div>
+                <div class="estout" id="estOut">
+                  <button class="btn ghost" id="estBtn" onclick="runEst()">Estimate volume</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- weighbridge -->
+          <div class="panel aicard">
+            <div class="cardhead"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M5 8l7-5 7 5M4 21h16"/><path d="M5 8l-2 6a3 3 0 0 0 6 0z"/><path d="M19 8l-2 6a3 3 0 0 0 6 0z"/></svg></div><h3>Read the weighbridge docket</h3><span class="r"><span class="tag ok">can bill</span></span></div>
+            <div class="aibody">
+              <p class="desc">The number is measured on a certified scale — AI only reads the ticket. So the tonnage it extracts is safe to bill directly.</p>
+              <div style="font-size:13px;background:var(--surface);border:1px solid var(--seam);border-radius:9px;padding:12px;color:var(--muted)">
+                Live demo under <b style="color:var(--ink);cursor:pointer" onclick="show('integrations')">Integrations → Weighbridge OCR</b>.
+              </div>
+            </div>
+          </div>
+
+          <!-- missed billing / utilisation -->
+          <div class="panel aicard">
+            <div class="cardhead"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div><h3>Catch what falls through</h3><span class="r"><span class="tag hold">flags for review</span></span></div>
+            <div class="aibody">
+              <p class="desc">Compares dispatch, capture, dockets and invoices to surface missed charges, idle plant and scheduling gaps — the alerts on your dashboard.</p>
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <div style="font-size:12.5px;background:var(--flag-soft);color:#8a2f21;border-radius:7px;padding:8px 10px">Docket disposal with no invoice line — possible missed charge</div>
+                <div style="font-size:12.5px;background:#EEE7CF;color:#8a6d00;border-radius:7px;padding:8px 10px">TR-03 idle 1.4h — utilisation gap, re-sequence tomorrow</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="demo-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <span>This is an interactive prototype with sample data for demonstration. Dispatch, capture, and integrations are simulated to show the intended flow — no live Xero or EROAD account is connected.</span>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- nav ----
+function show(v){
+  document.querySelectorAll('.view').forEach(s=>s.classList.remove('on'));
+  document.getElementById('v-'+v).classList.add('on');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  const btn=document.querySelector('.nav button[data-v="'+v+'"]');
+  if(btn) document.getElementById('crumb').textContent=btn.dataset.c;
+  document.querySelector('.content').scrollTo?.(0,0);
+  window.scrollTo(0,0);
+  if(window.innerWidth<=900) closeRail();
+}
+document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>show(b.dataset.v)));
+
+// ---- mobile rail ----
+function toggleRail(){document.getElementById('rail').classList.toggle('open');document.getElementById('scrim').classList.toggle('on')}
+function closeRail(){document.getElementById('rail').classList.remove('open');document.getElementById('scrim').classList.remove('on')}
+
+// ---- field capture ----
+let hrs=9.0, loads=9;
+function stepHrs(d){hrs=Math.max(0,Math.round((hrs+d)*2)/2);document.getElementById('hrsVal').textContent=hrs.toFixed(1)}
+function stepLoads(d){loads=Math.max(0,loads+d);document.getElementById('loadsVal').textContent=loads}
+function goOnline(){
+  const badge=document.getElementById('netbadge');
+  const notice=document.getElementById('fieldNotice');
+  const btn=document.getElementById('syncBtn');
+  btn.disabled=true;btn.textContent='Syncing…';
+  setTimeout(()=>{
+    badge.textContent='ONLINE';badge.classList.remove('no');badge.classList.add('yes');
+    notice.classList.remove('off');notice.classList.add('on');
+    notice.querySelector('span').textContent='Back online. 2 entries synced — now waiting on office review.';
+    btn.textContent='Synced ✓';btn.style.background='var(--billed)';btn.style.borderColor='var(--billed)';btn.style.color='#fff';
+  },1100);
+}
+
+// ---- invoice → xero ----
+function pushXero(){
+  const btn=document.getElementById('xeroBtn');
+  const st=document.getElementById('xeroState');
+  if(btn.dataset.done){st.innerHTML='<span class="src ok" style="background:var(--billed-soft);color:var(--billed);padding:1px 6px;border-radius:4px">Already synced</span> No duplicate created (idempotent).';return;}
+  btn.disabled=true;btn.textContent='Pushing…';
+  st.textContent='Creating invoice in Xero…';
+  setTimeout(()=>{
+    btn.disabled=false;btn.dataset.done='1';
+    btn.innerHTML='Pushed to Xero';btn.style.background='var(--billed)';btn.style.borderColor='var(--billed)';btn.style.color='#fff';
+    st.innerHTML='<span style="color:var(--billed);font-weight:600">✓ Synced</span> · INV-2050 · attachments included · press again to see idempotency';
+  },1300);
+}
+
+// ---- OCR ----
+function runOCR(){
+  const t=document.getElementById('ticket');
+  const btn=document.getElementById('ocrBtn');
+  const out=document.getElementById('ocrOut');
+  btn.disabled=true;btn.textContent='Reading…';
+  t.classList.add('scanning');
+  setTimeout(()=>{
+    t.classList.remove('scanning');
+    out.style.display='block';
+    btn.textContent='Read ✓';
+  },1400);
+}
+
+// ---- NL job ----
+const nlTasks=[
+  ['Site cut — 600m³','per hour'],
+  ['Load trucks','per hour'],
+  ['Cart spoil away','per load'],
+  ['Import GAP40','per tonne'],
+  ['Spread &amp; level','per hour']
+];
+function runNL(){
+  const out=document.getElementById('nlOut');
+  const btn=document.getElementById('nlBtn');
+  out.innerHTML='';btn.disabled=true;btn.textContent='Drafting…';
+  nlTasks.forEach((t,i)=>{
+    setTimeout(()=>{
+      const d=document.createElement('div');d.className='t';d.style.animationDelay='0s';
+      d.innerHTML='<b>'+t[0]+'</b><span class="basis">'+t[1]+'</span>';
+      out.appendChild(d);
+      if(i===nlTasks.length-1){btn.textContent='Confirm to create →';btn.disabled=false;btn.classList.remove('amber');btn.classList.add('ghost');}
+    },250+i*220);
+  });
+}
+
+// ---- photo estimate ----
+function runEst(){
+  const out=document.getElementById('estOut');
+  out.innerHTML='<div style="color:var(--muted);font-size:12px">Analysing…</div>';
+  setTimeout(()=>{
+    out.innerHTML='<div class="big">~10.2 m³</div><div style="color:var(--muted);font-size:12px">≈ 1 load · TR-02 capacity 11 m³ · <span class="src ai">estimate</span></div><div style="font-size:12px;color:var(--flag);margin-top:6px">Suggests a load may be unlogged — confirm with driver.</div>';
+  },900);
+}
+</script>
+</body>
+</html>

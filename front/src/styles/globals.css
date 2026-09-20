@@ -1,0 +1,137 @@
+/* SiteLedger design tokens — values taken verbatim from docs reference demo (§5). */
+
+:root {
+  --concrete: #E7E9E5;
+  --surface: #FAFAF8;
+  --panel: #FFFFFF;
+  --steel: #191C1B;
+  --ink: #22261F;
+  --muted: #6B726A;
+  --machine: #F5B301;
+  --machine-deep: #E0A200;
+  --slate: #4C5A61;
+  --slate-soft: #DCE1E1;
+  --seam: #D6D8D2;
+  --seam-soft: #E7E8E3;
+  --billed: #1E7A50;
+  --billed-soft: #DDEEE4;
+  --flag: #C6402E;
+  --flag-soft: #F6E1DC;
+  --hazard: repeating-linear-gradient(45deg, var(--steel) 0 9px, var(--machine) 9px 18px);
+
+  /* rail chrome — fixed steel-on-steel values, not theme tokens */
+  --rail-fg: #EDEEEA;
+  --rail-dim: #c3c7c1;
+  --rail-faint: #9aa09a;
+  --rail-foot: #8b918a;
+  --rail-seam: #2c302c;
+  --rail-hover: #242824;
+  --rail-active: #2a2e29;
+
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+:root[data-theme="dark"] {
+  --concrete: #121412;
+  --surface: #1a1d1a;
+  --panel: #1e211e;
+  --ink: #e7e9e3;
+  --muted: #9aa094;
+  --steel: #0c0e0c;
+  --seam: #2c302b;
+  --seam-soft: #242722;
+  --slate-soft: #2a332f;
+  --billed-soft: #17301f;
+  --flag-soft: #331d18;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-padding-top: env(safe-area-inset-top, 0px);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--concrete);
+  color: var(--ink);
+  font-family: var(--font-barlow), system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+:root[data-theme="dark"] body {
+  background: var(--concrete);
+}
+
+h1,
+h2,
+h3,
+h4,
+.cond {
+  font-family: var(--font-barlow-condensed), var(--font-barlow), sans-serif;
+}
+
+.mono {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+/* page-header type roles (demo: .eyebrow / .h-title / .lede) */
+.eyebrow {
+  font-family: var(--font-barlow-condensed), var(--font-barlow), sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 3px;
+}
+
+.pageTitle {
+  font-family: var(--font-barlow-condensed), var(--font-barlow), sans-serif;
+  font-weight: 700;
+  font-size: 27px;
+  line-height: 1.1;
+  margin: 0 0 4px;
+  letter-spacing: 0.2px;
+}
+
+.lede {
+  color: var(--muted);
+  margin: 0 0 22px;
+  max-width: 64ch;
+}
+
+:focus-visible {
+  outline: 2px solid var(--machine-deep);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1,0 +1,25 @@
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--seam);
+  border-radius: 12px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--seam-soft);
+}
+
+.head h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.aside {
+  margin-left: auto;
+  font-size: 12.5px;
+  color: var(--muted);
+}

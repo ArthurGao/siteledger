@@ -1,0 +1,8 @@
+.slot {
+  background: var(--panel);
+  border: 1px dashed var(--seam);
+  border-radius: 12px;
+  padding: 22px;
+  color: var(--muted);
+  font-size: 13.5px;
+}

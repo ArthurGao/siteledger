@@ -1,0 +1,27 @@
+.src {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 10.5px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.manual {
+  background: #edeee9;
+  color: #6a716a;
+}
+
+.tele {
+  background: var(--slate-soft);
+  color: var(--slate);
+}
+
+.weigh {
+  background: var(--billed-soft);
+  color: var(--billed);
+}
+
+.ai {
+  background: #efe6f3;
+  color: #7a4d97;
+}
